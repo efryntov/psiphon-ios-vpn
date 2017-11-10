@@ -14,7 +14,6 @@ PODS:
     - mopub-ios-sdk/Core
     - mopub-ios-sdk/Moat
   - MPUBMoatMobileAppKit (3.2.1)
-  - OpenSSL (1.0.210)
   - PsiphonClientCommonLibrary (0.2.23):
     - InAppSettingsKit
   - VungleSDK-iOS (5.2.0)
@@ -23,7 +22,6 @@ DEPENDENCIES:
   - Google-Mobile-Ads-SDK (= 7.24.0)
   - InAppSettingsKit (from `https://github.com/Psiphon-Inc/InAppSettingsKit.git`, commit `598c498`)
   - mopub-ios-sdk (= 4.16.0)
-  - OpenSSL (= 1.0.210)
   - PsiphonClientCommonLibrary (from `https://github.com/Psiphon-Inc/psiphon-ios-client-common-library.git`, commit `89d14eb`)
   - VungleSDK-iOS (= 5.2.0)
 
@@ -48,10 +46,9 @@ SPEC CHECKSUMS:
   InAppSettingsKit: 567ef538698cd6cf3afb9c5529b89a8936fdacb5
   mopub-ios-sdk: d656c7b5ccecc309115ac1ea280de76c72a301f7
   MPUBMoatMobileAppKit: f93733fbb17a5387228f4e29f1cd07c934d63cab
-  OpenSSL: 246ffb948e9d56466727fd318134af35f5aa764e
   PsiphonClientCommonLibrary: 26bb145e07f3bdaf9b83328d6bd865ecad76e85b
   VungleSDK-iOS: ad8fdb94efa34e026f25528ff9592af05c665095
 
-PODFILE CHECKSUM: b588fb7647f90ad411acf12de4f52c804efbbaa1
+PODFILE CHECKSUM: 49031417da3ec97a41bb27e288c81a7e2292ed74
 
 COCOAPODS: 1.3.1

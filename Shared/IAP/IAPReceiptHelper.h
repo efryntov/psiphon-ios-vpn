@@ -17,7 +17,7 @@
  *
  */
 
-#import "RMAppReceipt.h"
+#import "SlimAppReceipt.h"
 
 #define SUBSCRIPTION_CHECK_GRACE_PERIOD_INTERVAL 2 * 60 * 60 * 24  // two days
 
@@ -28,7 +28,7 @@
 + (instancetype)sharedInstance;
 - (BOOL) hasActiveSubscriptionForDate:(NSDate*)date;
 - (BOOL) verifyReceipt;
-- (RMAppReceipt*) appReceipt;
+- (SlimAppReceipt*) appReceipt;
 + (void) terminateForInvalidReceipt;
 @end
 

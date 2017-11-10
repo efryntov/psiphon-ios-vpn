@@ -22,8 +22,8 @@
 
 
 @implementation IAPReceiptHelper {
-   NSInteger _cachedAppReceipFileSize;
-   RMAppReceipt *_cachedAppReceipt;
+    NSInteger _cachedAppReceipFileSize;
+    SlimAppReceipt *_cachedAppReceipt;
 }
 
 + (instancetype)sharedInstance {
@@ -32,7 +32,6 @@
     dispatch_once(&onceToken, ^{
         iapReceiptHelper = [[IAPReceiptHelper alloc]init];
         NSURL *plistURL = [[NSBundle mainBundle] URLForResource:@"productIDs" withExtension:@"plist"];
-        [RMAppReceipt setAppleRootCertificateURL: [[NSBundle mainBundle] URLForResource:@"AppleIncRootCertificate" withExtension:@"cer"]];
         iapReceiptHelper.bundledProductIDS = [NSArray arrayWithContentsOfURL:plistURL];
     });
     return iapReceiptHelper;
@@ -51,7 +50,7 @@
     SKTerminateForInvalidReceipt();
 }
 
-- (RMAppReceipt *)appReceipt {
+- (SlimAppReceipt *)appReceipt {
     NSURL *URL = [NSBundle mainBundle].appStoreReceiptURL;
     NSNumber* theSize;
     NSInteger fileSize = 0;
@@ -59,7 +58,7 @@
     if ([URL getResourceValue:&theSize forKey:NSURLFileSizeKey error:nil]) {
         fileSize = [theSize integerValue];
         if (fileSize != _cachedAppReceipFileSize) {
-            _cachedAppReceipt  =  [RMAppReceipt bundleReceipt];
+            _cachedAppReceipt  =  [SlimAppReceipt bundleReceipt];
             _cachedAppReceipFileSize = fileSize;
         }
     }
@@ -67,7 +66,7 @@
 }
 
 - (BOOL) verifyReceipt  {
-    RMAppReceipt* receipt = [self appReceipt];
+    SlimAppReceipt* receipt = [self appReceipt];
 
     if (!receipt) {
         return NO;
@@ -77,20 +76,6 @@
     if (![receipt.bundleIdentifier isEqualToString:bundleIdentifier]) {
         return NO;
     }
-
-    // Leave build number check out because receipt may not get refreshed automatically
-    // when a new version is installed.
-    /*
-     NSString *applicationVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-     if (![receipt.appVersion isEqualToString:applicationVersion]) {
-     return NO;
-     }
-     */
-
-    if (![receipt verifyReceiptHash]) {
-        return NO;
-    }
-
     return YES;
 }
 

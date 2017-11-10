@@ -245,7 +245,7 @@ static NSString *iapCellID = @"IAPTableCellID";
     cell.detailTextLabel.text = product.localizedDescription;
     cell.textLabel.text = product.localizedTitle;
     
-    RMAppReceipt *receipt = [[IAPReceiptHelper sharedInstance] appReceipt];
+    SlimAppReceipt *receipt = [[IAPReceiptHelper sharedInstance] appReceipt];
     BOOL isActiveSubscription = NO;
     NSDate *subscriptionExpirationDate = nil;
 
