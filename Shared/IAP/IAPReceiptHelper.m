@@ -23,7 +23,7 @@
 
 @implementation IAPReceiptHelper {
     NSInteger _cachedAppReceipFileSize;
-    SlimAppReceipt *_cachedAppReceipt;
+    NSDictionary *_iapSubscriptions;
 }
 
 + (instancetype)sharedInstance {
@@ -40,7 +40,6 @@
 - (id) init {
     self = [super init];
     if (self) {
-        _cachedAppReceipt = nil;
         _cachedAppReceipFileSize = 0;
     }
     return self;
@@ -50,7 +49,7 @@
     SKTerminateForInvalidReceipt();
 }
 
-- (SlimAppReceipt *)appReceipt {
+- (NSDictionary *)iapSubscriptions {
     NSURL *URL = [NSBundle mainBundle].appStoreReceiptURL;
     NSNumber* theSize;
     NSInteger fileSize = 0;
@@ -58,35 +57,24 @@
     if ([URL getResourceValue:&theSize forKey:NSURLFileSizeKey error:nil]) {
         fileSize = [theSize integerValue];
         if (fileSize != _cachedAppReceipFileSize) {
-            _cachedAppReceipt  =  [SlimAppReceipt bundleReceipt];
+            SlimAppReceipt *receipt  =  [SlimAppReceipt bundleReceipt];
+            NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
+            if (![receipt.bundleIdentifier isEqualToString:bundleIdentifier]) {
+                _iapSubscriptions = nil;
+            } else {
+                _iapSubscriptions = [NSDictionary dictionaryWithDictionary:receipt.inAppPurchases];
+            }
+            receipt = nil;
             _cachedAppReceipFileSize = fileSize;
         }
     }
-    return _cachedAppReceipt;
-}
-
-- (BOOL) verifyReceipt  {
-    SlimAppReceipt* receipt = [self appReceipt];
-
-    if (!receipt) {
-        return NO;
-    }
-
-    NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
-    if (![receipt.bundleIdentifier isEqualToString:bundleIdentifier]) {
-        return NO;
-    }
-    return YES;
+    return _iapSubscriptions;
 }
 
 - (BOOL) hasActiveSubscriptionForDate:(NSDate*)date {
     // Assuming the products are subscriptions only check all product IDs in
     // the receipt against the bundled products list and determine if
     // we have at least one active subscription for current date.
-    if(![self appReceipt]) {
-        return NO;
-    }
-
 
 #if !DEBUG
     // Allow some tolerance IRL.
@@ -94,15 +82,15 @@
 #endif
 
     BOOL hasSubscription = NO;
+    NSDictionary *iaps = [self iapSubscriptions];
 
     for (NSString* productID in self.bundledProductIDS) {
-        NSDate *subscriptionExpirationDate = [[self appReceipt] expirationDateForProduct:productID];
+        NSDate *subscriptionExpirationDate = [iaps objectForKey:productID];
         hasSubscription = (subscriptionExpirationDate && [date compare:subscriptionExpirationDate] != NSOrderedDescending);
         if (hasSubscription) {
             return YES;
         }
     }
-
     return NO;
 }
 

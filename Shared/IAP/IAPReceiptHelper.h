@@ -27,8 +27,7 @@
 
 + (instancetype)sharedInstance;
 - (BOOL) hasActiveSubscriptionForDate:(NSDate*)date;
-- (BOOL) verifyReceipt;
-- (SlimAppReceipt*) appReceipt;
+- (NSDictionary*) iapSubscriptions;
 + (void) terminateForInvalidReceipt;
 @end
 

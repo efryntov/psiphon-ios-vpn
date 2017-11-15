@@ -21,7 +21,8 @@
     NSUInteger _sequenceField1;
     NSRange _sequenceField3;
     int _sequenceOrder;
-    NSMutableArray<SlimIAPReceipt*> *_parsedIAPs;
+    NSMutableDictionary *_parsedIAPs;
+    SlimIAPReceipt *_currentIAPReceipt;
     ASN1Helper *_asn1Helper;
 }
 
@@ -32,7 +33,8 @@
         _sequenceOrder = 0;
         _parser = [[DTASN1Parser alloc] init];
         _parser.delegate = self;
-        _parsedIAPs = [[NSMutableArray alloc] init];
+        _parsedIAPs = [[NSMutableDictionary alloc] init];
+        _currentIAPReceipt = [[SlimIAPReceipt alloc] init];
     }
     return self;
 }
@@ -64,8 +66,9 @@
     
     NSRange fileRange = NSMakeRange(0, length);
     
-    PKCS7Payload *pkcs7 = [[PKCS7Payload alloc] init];
-    NSRange pkcs7Range = [pkcs7 rangeFrom:fileRange withFileHandle:fh];
+    PKCS7Payload *pkcs7data = [[PKCS7Payload alloc] init];
+    NSRange pkcs7Range = [pkcs7data rangeFrom:fileRange withFileHandle:fh];
+    pkcs7data = nil;
     
     SlimAppReceipt *appReceipt = [[SlimAppReceipt alloc] init];
     
@@ -88,9 +91,6 @@
     
     if(result) {
         _inAppPurchases = _parsedIAPs;
-        for (SlimIAPReceipt *iap in _inAppPurchases) {
-            NSLog(@"iap: %@, %@, %@", iap.productIdentifier, iap.cancellationDate, iap.subscriptionExpirationDate);
-        }
     }
     
     return result;
@@ -119,41 +119,27 @@
             _receiptHash = [_parser.fileHandle readDataOfLength:range.length];
             break;
         case 17: {
-            SlimIAPReceipt *iap = [[SlimIAPReceipt alloc] init];
+            SlimIAPReceipt *iap = _currentIAPReceipt;
             if(![iap parseReceipt:range withFileHandle:_parser.fileHandle]) {
-                iap = nil;
                 break;
             }
             
             //Apple: treat a canceled receipt the same as if no purchase had ever been made.
             if(iap.cancellationDate) {
-                iap = nil;
                 break;
             }
             
             // sanity check
             if(iap.subscriptionExpirationDate == nil || iap.productIdentifier == nil) {
-                iap = nil;
                 break;
             }
             
-            if ([_parsedIAPs count] == 0) {
-                [_parsedIAPs addObject:iap];
+            NSDate *subscriptionExpirationDate = [_parsedIAPs objectForKey:iap.productIdentifier];
+            if (!subscriptionExpirationDate) {
+                [_parsedIAPs setObject:iap.subscriptionExpirationDate forKey:iap.productIdentifier];
             } else {
-                BOOL foundProductIdentifier = NO;
-                for(int i = 0; i < [_parsedIAPs count]; i++) {
-                    SlimIAPReceipt *curIAP = _parsedIAPs[i];
-                    if([curIAP.productIdentifier isEqualToString:iap.productIdentifier]) {
-                        foundProductIdentifier = YES;
-                        // if new expiration date  > old then replace with new
-                        if([curIAP.subscriptionExpirationDate compare:iap.subscriptionExpirationDate] == NSOrderedAscending) {
-                            [_parsedIAPs replaceObjectAtIndex:i withObject:iap];
-                        }
-                        break;
-                    }
-                }
-                if(!foundProductIdentifier) {
-                    [_parsedIAPs addObject:iap];
+                if ([subscriptionExpirationDate compare:iap.subscriptionExpirationDate] == NSOrderedAscending) {
+                    [_parsedIAPs setObject:iap.subscriptionExpirationDate forKey:iap.productIdentifier];
                 }
             }
         }
@@ -179,16 +165,9 @@
     return [expectedHash isEqualToData:self.receiptHash];
 }
 
-- (NSDate*)expirationDateForProduct:(NSString*)productIdentifier
-{
-    for(SlimIAPReceipt* iap in self.inAppPurchases) {
-        if([iap.productIdentifier isEqualToString:productIdentifier]) {
-            return iap.subscriptionExpirationDate;
-        }
-    }
-    return nil;
+- (NSDate*)expirationDateForProduct:(NSString*)productIdentifier {
+    return [self.inAppPurchases objectForKey:productIdentifier];
 }
-
 
 # pragma mark DTASN1ParserDelegate methods
 

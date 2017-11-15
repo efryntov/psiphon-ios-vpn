@@ -8,7 +8,7 @@
 @property (nonatomic, strong, readonly) NSString *bundleIdentifier;
 @property (nonatomic, strong, readonly) NSData *receiptHash;
 @property (nonatomic, strong, readonly) NSData *opaqueValue;
-@property (nonatomic, strong, readonly) NSArray *inAppPurchases;
+@property (nonatomic, strong, readonly) NSDictionary *inAppPurchases;
 
 + (instancetype)bundleReceipt;
 - (BOOL)parseReceipt:(NSRange)range withFileHandle:(NSFileHandle*)fh;
